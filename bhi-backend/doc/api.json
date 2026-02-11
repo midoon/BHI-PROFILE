@@ -1,0 +1,312 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Organization Profile CMS API",
+    "version": "1.0.0",
+    "description": "API specification for Organization Profile Website + CMS + Admin Dashboard.\n\nThis API uses JWT Bearer authentication for admin routes.\nPublic routes are accessible without authentication.\n\nAdmin authentication supports default developer credential and optional email-based account upgrade."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/public/articles": {
+      "get": {
+        "summary": "Get list of published articles",
+        "tags": ["Public - Articles"],
+        "responses": {
+          "200": {
+            "description": "List of articles",
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": 1,
+                      "title": "Welcome Article",
+                      "slug": "welcome-article",
+                      "excerpt": "Short description",
+                      "cover": "/uploads/a.jpg",
+                      "published_at": "2026-01-01"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/public/articles/{slug}": {
+      "get": {
+        "summary": "Get article detail",
+        "tags": ["Public - Articles"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article detail"
+          }
+        }
+      }
+    },
+
+    "/public/news": {
+      "get": {
+        "summary": "Get list of news",
+        "tags": ["Public - News"],
+        "responses": {
+          "200": { "description": "List of news" }
+        }
+      }
+    },
+
+    "/public/chat": {
+      "post": {
+        "summary": "Send message to admin",
+        "tags": ["Public - Chat"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "John",
+                "email": "john@mail.com",
+                "message": "Saya ingin bertanya..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message stored and admin notified"
+          }
+        }
+      }
+    },
+
+    "/admin/auth/login": {
+      "post": {
+        "summary": "Admin login (default or email)",
+        "tags": ["Admin - Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "username": "admin",
+                "password": "admin123",
+                "remember_me": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login success with JWT token",
+            "content": {
+              "application/json": {
+                "example": {
+                  "access_token": "jwt-token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/admin/auth/upgrade": {
+      "post": {
+        "summary": "Upgrade default credential to email account",
+        "description": "Registers email & password. Default credential will be disabled.",
+        "tags": ["Admin - Auth"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "admin@mail.com",
+                "username": "newadmin",
+                "password": "newpassword123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification email sent"
+          }
+        }
+      }
+    },
+
+    "/admin/auth/verify-email": {
+      "post": {
+        "summary": "Verify email token",
+        "tags": ["Admin - Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "token": "verify_token_123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          }
+        }
+      }
+    },
+
+    "/admin/auth/forgot-password": {
+      "post": {
+        "summary": "Request password reset",
+        "description": "Only works if email already registered & verified. If still using default credential, request will be rejected.",
+        "tags": ["Admin - Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "admin@mail.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent"
+          },
+          "400": {
+            "description": "Email not registered or still using default credential"
+          }
+        }
+      }
+    },
+
+    "/admin/auth/reset-password": {
+      "post": {
+        "summary": "Reset password with token",
+        "tags": ["Admin - Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "token": "reset_token_123",
+                "password": "newpass123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Password updated" }
+        }
+      }
+    },
+
+    "/admin/articles": {
+      "get": {
+        "summary": "List all articles (admin)",
+        "tags": ["Admin - Articles"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "List of articles" } }
+      },
+      "post": {
+        "summary": "Create article",
+        "tags": ["Admin - Articles"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "title": "New Article",
+                "content": "HTML content",
+                "status": "draft"
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+
+    "/admin/articles/{id}": {
+      "put": {
+        "summary": "Update article",
+        "tags": ["Admin - Articles"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "summary": "Delete article",
+        "tags": ["Admin - Articles"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+
+    "/admin/chat": {
+      "get": {
+        "summary": "List chat inbox",
+        "tags": ["Admin - Chat"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "List of messages" } }
+      }
+    },
+
+    "/admin/chat/{id}/reply": {
+      "post": {
+        "summary": "Reply to chat and send email",
+        "tags": ["Admin - Chat"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "message": "Terima kasih atas pertanyaannya..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Reply saved & email sent" }
+        }
+      }
+    },
+
+    "/admin/upload": {
+      "post": {
+        "summary": "Upload media file",
+        "tags": ["Admin - Media"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "File uploaded" }
+        }
+      }
+    }
+  }
+}
