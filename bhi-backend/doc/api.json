@@ -241,11 +241,24 @@
         "security": [{ "BearerAuth": [] }],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "category_id": { "type": "string" },
+                  "banner": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
               "example": {
                 "title": "New Article",
-                "content": "HTML content",
-                "status": "draft"
+                "content": "<p>Article content here...</p>",
+                "category_id": "uuid-1",
+                "banner": "(binary file)"
               }
             }
           }
